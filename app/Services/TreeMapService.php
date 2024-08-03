@@ -101,8 +101,8 @@ class TreeMapService
         });
 
         foreach ($groupedOrders as $locationId => $stores) {
-            //dd($stores); //ok chegando
-            $locationTotal = $stores->sum('total_amount');
+           //soma o total dos pedidos das lojas do estado
+            $locationTotal = $stores->sum('total_amount'); //1445.13 ok
 
             $locationData = [
                 'name' => $this->getLocationName($type, $locationId),
@@ -111,8 +111,7 @@ class TreeMapService
             ];
             
             foreach ($stores as $storeId => $storeorders) {
-                //dd($storeorders);
-                $storeTotal = $storeorders->sum('total_amount');
+                $storeTotal = $storeorders->total_amount;
                 $locationData['children'][] = [
                     'name' => $this->getStoreName($storeorders->store_id),
                     'value' => $storeTotal

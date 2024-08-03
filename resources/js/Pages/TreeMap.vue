@@ -68,7 +68,7 @@ const createTreeMap = () => {
         offsetY += rectHeight;
         
         // Cria retângulos para os filhos, se houver
-        console.log('Children', item.children)
+        console.log('offsetY', offsetY)
         if (item.children) {
             createRectangles(item.children, x, offsetY, rectWidth, height / item.children.length);
         }
