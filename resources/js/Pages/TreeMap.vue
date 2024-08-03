@@ -73,8 +73,8 @@ const createTreeMap = () => {
             const proportion = item.value / totalValue;
             const rectWidth = parentWidth;
             const rectHeight = parentHeight * proportion;
-            const rectColor = parentColor;
-console.log('Cor', parentColor)
+            const rectColor = item.color;
+            console.log('rectWidth', parentWidth)
             const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
             rect.setAttribute("x", offsetX);
             rect.setAttribute("y", offsetY);

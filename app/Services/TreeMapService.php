@@ -67,7 +67,7 @@ class TreeMapService
             'color' => $this->getColor('root'), // Cor padrão, pode ser ajustado no metodo
             'status' => 'ativo',
             'reportData' => json_encode($treeMapData),
-            'ratio' => 1
+            'ratio' => 100 //proporcao 100
         ]);
 
         return $treeMap;
@@ -172,9 +172,20 @@ class TreeMapService
     {
         if ($type === 'root') {
 
-            return 'steelblue';
+            return 'blue';
         } else {
-            return 'steelblue';
+            return 'green';
         }
+    }
+
+     /**
+     * Retorna o tamanho do item a ser usada no retangulo.
+     *
+     * @param array $item, 
+     * @return array largura altura 
+     */
+    private function getSize($item)
+    {
+        
     }
 }
