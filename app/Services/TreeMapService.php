@@ -64,7 +64,7 @@ class TreeMapService
             'name' => ucfirst($type) . " Report for $month",
             'value' => $ordersData->sum('total_amount'),
             'level' => 0,
-            'color' => '#000000', // Cor padrão, pode ser ajustado
+            'color' => $this->getColor('root'), // Cor padrão, pode ser ajustado no metodo
             'status' => 'ativo',
             'reportData' => json_encode($treeMapData),
             'ratio' => 1
@@ -107,6 +107,7 @@ class TreeMapService
             $locationData = [
                 'name' => $this->getLocationName($type, $locationId),
                 'value' => $locationTotal,
+                'color' => $this->getColor('root'),
                 'children' => []
             ];
             
@@ -114,7 +115,8 @@ class TreeMapService
                 $storeTotal = $storeorders->total_amount;
                 $locationData['children'][] = [
                     'name' => $this->getStoreName($storeorders->store_id),
-                    'value' => $storeTotal
+                    'value' => $storeTotal,
+                    'color' => $this->getColor('children'),
                 ];
             }
 
@@ -158,5 +160,21 @@ class TreeMapService
     private function getStoreName($id)
     {
         return DB::table('stores')->where('id', $id)->value('name');
+    }
+
+    /**
+     * Retorna a cor a ser usada no retangulo.
+     *
+     * @param string $type
+     * @return string
+     */
+    private function getColor($type)
+    {
+        if ($type === 'root') {
+
+            return 'steelblue';
+        } else {
+            return 'steelblue';
+        }
     }
 }

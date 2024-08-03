@@ -24,7 +24,6 @@ const props = defineProps({
 console.log('Data', props.treeMap)
 const reportData = JSON.parse(props.treeMap.reportData) //converter o json em iteravel
 console.log('reportData', reportData)
-const treeMap = ref(null);
 
 </script>
 
@@ -70,7 +69,7 @@ const treeMap = ref(null);
                     <div class="grid gap-6 lg:grid-cols-2 lg:gap-8">
                             <div>
                                 <h1>{{ props.treeMap.name }}</h1>
-                                <TreeMap :data="reportData" />
+                                <TreeMap :data="reportData" :color="props.treeMap.color" />
                             </div>
                     </div>
                 </main>
