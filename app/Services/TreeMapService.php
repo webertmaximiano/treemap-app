@@ -85,20 +85,36 @@ class TreeMapService
         $treeMapData = [];
 
         // Agrupa os pedidos por localidade e loja
-        $groupedOrders = $ordersData->groupBy([$type . '_id', 'store_id']);
+        //$groupedOrders = $ordersData->groupBy([$type . '_id', 'store_id']);
+
+        $groupedOrders = $ordersData->groupBy(function($order) use ($type) {
+            switch ($type) {
+                case 'country':
+                    return $order->store->state->regionCountry->country->id;
+                case 'state':
+                    return $order->store->state->id;
+                case 'region':
+                    return $order->store->state->regionCountry->id;
+                default:
+                    return null;
+            }
+        });
 
         foreach ($groupedOrders as $locationId => $stores) {
+            //dd($stores); //ok chegando
             $locationTotal = $stores->sum('total_amount');
+
             $locationData = [
                 'name' => $this->getLocationName($type, $locationId),
                 'value' => $locationTotal,
                 'children' => []
             ];
-
+            
             foreach ($stores as $storeId => $storeorders) {
+                //dd($storeorders);
                 $storeTotal = $storeorders->sum('total_amount');
                 $locationData['children'][] = [
-                    'name' => $this->getStoreName($storeId),
+                    'name' => $this->getStoreName($storeorders->store_id),
                     'value' => $storeTotal
                 ];
             }
@@ -123,6 +139,7 @@ class TreeMapService
                 return DB::table('countries')->where('id', $id)->value('name');
 
             case 'state':
+                $name = DB::table('states')->where('id', $id)->value('name');
                 return DB::table('states')->where('id', $id)->value('name');
 
             case 'region':
