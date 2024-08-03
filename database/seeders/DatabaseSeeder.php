@@ -13,11 +13,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        User::factory(10)->create(); // criando 10 usuarios
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        // Chamada para Criar Pais, Regiao e Estados
+        $this->call(CountryRegionStateSeeder::class);
+      
+        // Chamada para gerar lojas para os estados
+        $this->call(StoresSeeder::class);
+
+        // Chamada para gerar pedidos para lojas
+        $this->call(OrderSeeder::class);
     }
 }

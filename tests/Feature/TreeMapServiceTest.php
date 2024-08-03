@@ -46,12 +46,26 @@ class TreeMapServiceTest extends TestCase
 
     
     // metodo para preparar os dados por Local
-    public function test_generate_tree_map_report_locale() 
+    public function test_generate_tree_map_report_locale()
     {
-        //iniciando a classe de servico
         $service = new TreeMapService();
 
-       
+        // Gerar o relatório para um estado específico (ajuste conforme necessário)
+        $type = 'state';
+        $state = $this->stores->first()->state; // Ajuste conforme a lógica de estados e lojas
+        $month = now()->format('Y-m');
+
+        $treeMap = $service->generateTreeMapReportLocale($type, $state->name, $month);
+
+        // Verificações
+        $this->assertInstanceOf(TreeMap::class, $treeMap); // confere se objetos sao de mesma classe
+        $this->assertEquals('State Report for ' . $month, $treeMap->name); // nome do relatorio
+        $this->assertNotEmpty($treeMap->reportData); //nao vazio
+
+        $reportData = json_decode($treeMap->reportData, true); //convert o json
+        
+        $this->assertIsArray($reportData); //verifica se e um array
     }
+
     
 }

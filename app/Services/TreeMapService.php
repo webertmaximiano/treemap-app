@@ -4,6 +4,11 @@ namespace App\Services;
 
 use App\Models\TreeMap;
 use App\Models\Order;
+use App\Models\Country;
+use App\Models\State;
+use App\Models\RegionCountry;
+use Illuminate\Support\Facades\DB;
+
 
 class TreeMapService
 {    
@@ -11,25 +16,40 @@ class TreeMapService
      * Gera um relatório de TreeMap com base na localidade especificada.
      *
      * @param string $type Tipo de localidade (country, state, region)
-     * @param mixed $identifier Identificador da localidade (id do país, estado, ou região)
+     * @param mixed $identifier Identificador da localidade (nome país, estado, ou região)
      * @param string $month Mês do relatório no formato 'Y-m'
      * @return TreeMap
      */
     public function generateTreeMapReportLocale(string $type, $identifier, string $month)
     {
-        $ordersQuery = Order::where('create_at', 'like', "$month%");
+        $ordersQuery = Order::where('created_at', 'like', "$month%");
 
         switch ($type) {
             case 'country':
-                $ordersQuery->where('country_id', $identifier);
+                $country = Country::where('name', $identifier)->first();
+                if ($country) {
+                    $ordersQuery->whereHas('store.state.regionCountry.country', function($query) use ($country) {
+                        $query->where('id', $country->id);
+                    });
+                }
                 break;
 
             case 'state':
-                $ordersQuery->where('state_id', $identifier);
+                $state = State::where('name', $identifier)->first();
+                if ($state) {
+                    $ordersQuery->whereHas('store.state', function($query) use ($state) {
+                        $query->where('id', $state->id);
+                    });
+                }
                 break;
 
             case 'region':
-                $ordersQuery->where('region_country_id', $identifier);
+                $region = RegionCountry::where('name', $identifier)->first();
+                if ($region) {
+                    $ordersQuery->whereHas('store.state.regionCountry', function($query) use ($region) {
+                        $query->where('id', $region->id);
+                    });
+                }
                 break;
 
             default:
@@ -42,7 +62,7 @@ class TreeMapService
         $treeMap = TreeMap::create([
             'parent_id' => null,
             'name' => ucfirst($type) . " Report for $month",
-            'value' => $ordersData->sum('amount'),
+            'value' => $ordersData->sum('total_amount'),
             'level' => 0,
             'color' => '#000000', // Cor padrão, pode ser ajustado
             'status' => 'ativo',
@@ -68,7 +88,7 @@ class TreeMapService
         $groupedOrders = $ordersData->groupBy([$type . '_id', 'store_id']);
 
         foreach ($groupedOrders as $locationId => $stores) {
-            $locationTotal = $stores->sum('amount');
+            $locationTotal = $stores->sum('total_amount');
             $locationData = [
                 'name' => $this->getLocationName($type, $locationId),
                 'value' => $locationTotal,
@@ -76,7 +96,7 @@ class TreeMapService
             ];
 
             foreach ($stores as $storeId => $storeorders) {
-                $storeTotal = $storeorders->sum('amount');
+                $storeTotal = $storeorders->sum('total_amount');
                 $locationData['children'][] = [
                     'name' => $this->getStoreName($storeId),
                     'value' => $storeTotal
@@ -106,7 +126,7 @@ class TreeMapService
                 return DB::table('states')->where('id', $id)->value('name');
 
             case 'region':
-                return DB::table('regions')->where('id', $id)->value('name');
+                return DB::table('region_countries')->where('id', $id)->value('name');
 
             default:
                 return 'Unknown';
