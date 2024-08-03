@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\TreeMap;
+use App\Models\State;
+
 use Illuminate\Http\Request;
 
 class TreeMapController extends Controller
@@ -34,9 +36,11 @@ class TreeMapController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(TreeMap $treeMap)
+    public function show()
     {
-        dd('aqui');
+        $states = State::with('regionCountry', 'regionCountry.country')->get();
+
+        dd($states);
     }
 
     /**

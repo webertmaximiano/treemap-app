@@ -17,6 +17,11 @@ return new class extends Migration
             $table->string('name');
             $table->double('value');
             $table->integer('level')->nullable();
+            $table->string('color')->nullable();
+            $table->string('status')->default('ativo');
+            $table->string('path_file')->nullable();
+            $table->json('reportData')->nullable();
+            $table->double('ratio')->default(0);
             $table->timestamps();
 
             $table->foreign('parent_id')->references('id')->on('tree_maps')->onDelete('cascade');
