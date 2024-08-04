@@ -90,7 +90,7 @@ class TreeMapService
         $groupedOrders = $ordersData->groupBy(function($order) use ($type) {
             switch ($type) {
                 case 'country':
-                    return $order->store->state->regionCountry->country->id;
+                    return $order->store->state->regionCountry->country;
                 case 'state':
                     return $order->store->state->id;
                 case 'region':
@@ -102,7 +102,7 @@ class TreeMapService
 
         foreach ($groupedOrders as $locationId => $stores) {
            //soma o total dos pedidos das lojas do estado
-            $locationTotal = $stores->sum('total_amount'); //1445.13 ok
+            $locationTotal = $this->calculateChildrenTotalValue($ordersData); //1445.13 ok
 
             $locationData = [
                 'name' => $this->getLocationName($type, $locationId),
@@ -110,7 +110,7 @@ class TreeMapService
                 'color' => $this->getColor('root'),
                 'children' => []
             ];
-            
+
             foreach ($stores as $storeId => $storeorders) {
                 $storeTotal = $storeorders->total_amount;
                 $locationData['children'][] = [
@@ -186,6 +186,50 @@ class TreeMapService
      */
     private function getSize($item)
     {
-        
+         // Calcular as dimensões iniciais do retângulo do estado
+         $width = 800; // Largura inicial do estado
+         $height = 600; // Altura inicial do estado
+         $x = 0;
+         $y = 0;
     }
+
+    private function calculateChildrenTotalValue($childrens)
+    {
+        return $childrens->sum('total_amount');
+    }
+
+    public function generateTreeMapSizeData($data, $parentWidth = 800, $parentHeight = 600) {
+        $totalValue = array_sum(array_column($data, 'value'));
+    
+        foreach ($data as &$item) {
+            $proportion = $item['value'] / $totalValue;
+            $item['width'] = $parentWidth * $proportion;
+            $item['height'] = $parentHeight * $proportion;
+            if (isset($item['children'])) {
+                $item['children'] = $this->generateTreeMapSizeData($item['children'], $item['width'], $item['height']);
+            }
+        }
+        return $data;
+    }
+    
+
+    private function generateChildSizes($children, $parentWidth, $parentHeight)
+    {
+        $totalValue = array_sum(array_column($children, 'value'));
+        $offsetX = 0;
+        $offsetY = 0;
+
+        foreach ($children as &$child) {
+            $proportion = $child['value'] / $totalValue;
+            $child['width'] = $parentWidth * $proportion;
+            $child['height'] = $parentHeight * $proportion;
+            $child['x'] = $offsetX;
+            $child['y'] = $offsetY;
+
+            $offsetY += $child['height'];
+        }
+
+        return $children;
+    }
+    
 }

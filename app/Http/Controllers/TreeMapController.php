@@ -32,7 +32,7 @@ class TreeMapController extends Controller
      */
     public function index()
     {
-        //
+        return inertia('TreeMap/Index');
     }
 
     /**
@@ -56,12 +56,12 @@ class TreeMapController extends Controller
      */
     public function show()
     {
-        $type= 'state';
-        $identifier= 'Acre';
+        $type= 'region';
+        $identifier= 'Sudeste';
         $month = now()->format('Y-m');
         $data = $this->service->generateTreeMapReportLocale($type,  $identifier, $month);
        
-        return Inertia::render('TreemapShow', [
+        return Inertia::render('TreeMap/TreemapShow', [
             'canLogin' => Route::has('login'),
             'canRegister' => Route::has('register'),
             'laravelVersion' => Application::VERSION,
