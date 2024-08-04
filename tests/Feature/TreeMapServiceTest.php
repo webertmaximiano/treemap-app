@@ -66,6 +66,4 @@ class TreeMapServiceTest extends TestCase
         
         $this->assertIsArray($reportData); //verifica se e um array
     }
-
-    
 }

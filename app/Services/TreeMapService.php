@@ -9,17 +9,16 @@ use App\Models\State;
 use App\Models\RegionCountry;
 use Illuminate\Support\Facades\DB;
 
-
 class TreeMapService
-{    
-     /**
-     * Gera um relatório de TreeMap com base na localidade especificada.
-     *
-     * @param string $type Tipo de localidade (country, state, region)
-     * @param mixed $identifier Identificador da localidade (nome país, estado, ou região)
-     * @param string $month Mês do relatório no formato 'Y-m'
-     * @return TreeMap
-     */
+{
+    /**
+    * Gera um relatório de TreeMap com base na localidade especificada.
+    *
+    * @param string $type Tipo de localidade (country, state, region)
+    * @param mixed $identifier Identificador da localidade (nome país, estado, ou região)
+    * @param string $month Mês do relatório no formato 'Y-m'
+    * @return TreeMap
+    */
     public function generateTreeMapReportLocale(string $type, $identifier, string $month)
     {
         $ordersQuery = Order::where('created_at', 'like', "$month%");
@@ -28,7 +27,7 @@ class TreeMapService
             case 'country':
                 $country = Country::where('name', $identifier)->first();
                 if ($country) {
-                    $ordersQuery->whereHas('store.state.regionCountry.country', function($query) use ($country) {
+                    $ordersQuery->whereHas('store.state.regionCountry.country', function ($query) use ($country) {
                         $query->where('id', $country->id);
                     });
                 }
@@ -37,7 +36,7 @@ class TreeMapService
             case 'state':
                 $state = State::where('name', $identifier)->first();
                 if ($state) {
-                    $ordersQuery->whereHas('store.state', function($query) use ($state) {
+                    $ordersQuery->whereHas('store.state', function ($query) use ($state) {
                         $query->where('id', $state->id);
                     });
                 }
@@ -46,7 +45,7 @@ class TreeMapService
             case 'region':
                 $region = RegionCountry::where('name', $identifier)->first();
                 if ($region) {
-                    $ordersQuery->whereHas('store.state.regionCountry', function($query) use ($region) {
+                    $ordersQuery->whereHas('store.state.regionCountry', function ($query) use ($region) {
                         $query->where('id', $region->id);
                     });
                 }
@@ -87,7 +86,7 @@ class TreeMapService
         // Agrupa os pedidos por localidade e loja
         //$groupedOrders = $ordersData->groupBy([$type . '_id', 'store_id']);
 
-        $groupedOrders = $ordersData->groupBy(function($order) use ($type) {
+        $groupedOrders = $ordersData->groupBy(function ($order) use ($type) {
             switch ($type) {
                 case 'country':
                     return $order->store->state->regionCountry->country;
@@ -101,7 +100,7 @@ class TreeMapService
         });
 
         foreach ($groupedOrders as $locationId => $stores) {
-           //soma o total dos pedidos das lojas do estado
+            //soma o total dos pedidos das lojas do estado
             $locationTotal = $this->calculateChildrenTotalValue($ordersData); //1445.13 ok
 
             $locationData = [
@@ -125,7 +124,13 @@ class TreeMapService
 
         return $treeMapData;
     }
+    
+    public function createTreeMapData($data)
+    {
 
+        $treeMapData = [];
+        //ordenar a collection pelo valor total_amount
+    }
     /**
      * Retorna o nome da localidade com base no tipo e identificador.
      *
@@ -178,19 +183,19 @@ class TreeMapService
         }
     }
 
-     /**
-     * Retorna o tamanho do item a ser usada no retangulo.
-     *
-     * @param array $item, 
-     * @return array largura altura 
-     */
+    /**
+    * Retorna o tamanho do item a ser usada no retangulo.
+    *
+    * @param array $item,
+    * @return array largura altura
+    */
     private function getSize($item)
     {
-         // Calcular as dimensões iniciais do retângulo do estado
-         $width = 800; // Largura inicial do estado
-         $height = 600; // Altura inicial do estado
-         $x = 0;
-         $y = 0;
+        // Calcular as dimensões iniciais do retângulo do estado
+        $width = 800; // Largura inicial do estado
+        $height = 600; // Altura inicial do estado
+        $x = 0;
+        $y = 0;
     }
 
     private function calculateChildrenTotalValue($childrens)
@@ -198,9 +203,10 @@ class TreeMapService
         return $childrens->sum('total_amount');
     }
 
-    public function generateTreeMapSizeData($data, $parentWidth = 800, $parentHeight = 600) {
+    public function generateTreeMapSizeData($data, $parentWidth = 800, $parentHeight = 600)
+    {
         $totalValue = array_sum(array_column($data, 'value'));
-    
+
         foreach ($data as &$item) {
             $proportion = $item['value'] / $totalValue;
             $item['width'] = $parentWidth * $proportion;
@@ -211,7 +217,7 @@ class TreeMapService
         }
         return $data;
     }
-    
+
 
     private function generateChildSizes($children, $parentWidth, $parentHeight)
     {
@@ -231,5 +237,5 @@ class TreeMapService
 
         return $children;
     }
-    
+
 }

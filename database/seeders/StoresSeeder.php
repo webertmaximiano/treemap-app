@@ -29,7 +29,5 @@ class StoresSeeder extends Seeder
                 ->create();
         });
 
-        //return $stores->flatten();
-       // dd($stores);
     }
 }

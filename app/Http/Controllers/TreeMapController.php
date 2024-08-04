@@ -32,7 +32,12 @@ class TreeMapController extends Controller
      */
     public function index()
     {
-        return inertia('TreeMap/Index');
+        $orders = Order::all();
+        $treeMap = $this->service->createTreeMapData($orders);
+       dd($orders);
+        return inertia('TreeMap/Index', [
+            'treeMap' => $treeMap,
+        ]);
     }
 
     /**

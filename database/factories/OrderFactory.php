@@ -28,15 +28,20 @@ class OrderFactory extends Factory
         ];
     }
 
-    public function allStores($stores) 
+    public function allStores($stores, $users) 
     {
         foreach ($stores as $store) {
-            Order::factory()->create([
-                'store_id' => $store->id,
-                'store_name' => $store->name,
-                'user_id' => User::factory()->create()->id,
-                'total_amount' => $this->faker->randomFloat(2, 50, 500),
-            ]);
+
+            foreach ($users as $user) {
+
+                Order::factory()->create([
+                    'store_id' => $store->id,
+                    'store_name' => $store->name,
+                    'user_id' => $user->id,
+                    'total_amount' => $this->faker->randomFloat(2, 50, 500),
+                ]);
+            }
+           
         }
     }
 }

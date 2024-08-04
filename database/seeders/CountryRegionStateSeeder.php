@@ -23,11 +23,27 @@ class CountryRegionStateSeeder extends Seeder
             'name' => 'Brasil'
         ]);
         // criar as regioes do brazil Norte, Nordeste
-        $norte = RegionCountry::create(['name' => 'Norte']);
-        $nordeste = RegionCountry::create(['name' => 'Nordeste']);
-        $centroOeste = RegionCountry::create(['name' => 'Centro-Oeste']);
-        $sudeste = RegionCountry::create(['name' => 'Sudeste']);
-        $sul = RegionCountry::create(['name' => 'Sul']);
+        $norte = RegionCountry::create([
+            'name' => 'Norte',
+            'country_id' => $country->id,
+        ]);
+
+        $nordeste = RegionCountry::create([
+            'name' => 'Nordeste',
+            'country_id' => $country->id,
+        ]);
+        $centroOeste = RegionCountry::create([
+            'name' => 'Centro-Oeste',
+            'country_id' => $country->id,
+        ]);
+        $sudeste = RegionCountry::create([
+            'name' => 'Sudeste',
+            'country_id' => $country->id,
+        ]);
+        $sul = RegionCountry::create([
+            'name' => 'Sul',
+            'country_id' => $country->id,
+        ]);
 
         // criar os stados por regiao
         $states = [
@@ -272,7 +288,6 @@ class CountryRegionStateSeeder extends Seeder
         foreach ($states as $stateData) {
             State::create($stateData);
         }
- 
 
     }
 }
