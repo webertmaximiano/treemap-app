@@ -22,6 +22,7 @@ class CountryRegionStateSeeder extends Seeder
         $country = Country::create([
             'name' => 'Brasil'
         ]);
+        
         // criar as regioes do brazil Norte, Nordeste
         $norte = RegionCountry::create([
             'name' => 'Norte',

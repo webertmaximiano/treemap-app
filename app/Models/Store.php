@@ -31,4 +31,16 @@ class Store extends Model
     {
         return $this->belongsTo(State::class);
     }
+
+    // Definindo o relacionamento com o modelo Order
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
+
+    // Método para calcular a soma dos valores das ordens
+    public function getTotalOrdersValueAttribute()
+    {
+        return $this->orders()->sum('total_amount');
+    }
 }

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Collection;
+
 use Inertia\Inertia;
 
 use App\Models\TreeMap;
@@ -33,8 +35,8 @@ class TreeMapController extends Controller
     public function index()
     {
         $orders = Order::all();
-        $treeMap = $this->service->createTreeMapData($orders);
-       dd($orders);
+        
+        $treeMap = $this->service->generateTreeMapData($orders);
         return inertia('TreeMap/Index', [
             'treeMap' => $treeMap,
         ]);

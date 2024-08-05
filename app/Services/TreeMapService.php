@@ -6,8 +6,11 @@ use App\Models\TreeMap;
 use App\Models\Order;
 use App\Models\Country;
 use App\Models\State;
+use App\Models\Store;
+
 use App\Models\RegionCountry;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Collection;
 
 class TreeMapService
 {
@@ -84,8 +87,6 @@ class TreeMapService
         $treeMapData = [];
 
         // Agrupa os pedidos por localidade e loja
-        //$groupedOrders = $ordersData->groupBy([$type . '_id', 'store_id']);
-
         $groupedOrders = $ordersData->groupBy(function ($order) use ($type) {
             switch ($type) {
                 case 'country':
@@ -124,13 +125,154 @@ class TreeMapService
 
         return $treeMapData;
     }
-    
-    public function createTreeMapData($data)
-    {
 
+    public function generateTreeMapData($data)
+    {
+        //Array pro TreeMap ser renderizado
         $treeMapData = [];
-        //ordenar a collection pelo valor total_amount
+
+        // Passo 1: Ordenar a colecao das lojas com o valor total dos pedidos
+        $storesWithTotals = $this->groupByStore($data); 
+
+        // Passo 2: Agrupar as lojas por estado
+        $statesWithTotals = $this->groupByState($storesWithTotals);
+
+        // Passo 3: calcular o total dos pedidos por estado somando cada total de loja
+        $totalValue = $statesWithTotals->sum('total_amount');
+
+        //Passo 4: calcular a dimensao do retangulo
+        $parentWidth = 800; // pode implementar uma consulta para personalizar
+        $parentHeight = 600; // pode implementar uma consulta para personalizar
+        $this->calculateDimensions($statesWithTotals, $totalValue, $parentWidth, $parentHeight);
+
+        // Passo 5: Atribuir a posição do retângulo no mapa
+        $this->assignPositions($statesWithTotals);
+        return $statesWithTotals;
     }
+
+    private function groupByStore($data)
+    {
+        // Agrupar os pedidos por loja
+        $ordersByStore = $data->groupBy('store_id');
+
+        // Pegar as lojas e o valor total de pedidos de cada uma
+        $storesWithTotals = $ordersByStore->map(function ($storeOrders) {
+            $firstOrder = $storeOrders->first();
+            return [
+                'store_id' => $firstOrder['store_id'],
+                'store_name' => $firstOrder['store_name'],
+                'total_amount' => $storeOrders->sum('total_amount'),
+                'children' => $storeOrders->map(function ($order) {
+                    return [
+                        'order_id' => $order['id'],
+                        'order_amount' => $order['total_amount'],
+                    ];
+                })->toArray(),
+            ];
+        })->values();
+
+        return $storesWithTotals;
+    }
+
+    private function groupByState($storesWithTotals)
+    {
+        // Agrupar as lojas por estado
+        $storesGroupedByState = $storesWithTotals->groupBy(function ($store) {
+            // Presumindo que você tem um relacionamento de loja para estado
+            $storeModel = Store::find($store['store_id']);
+            return $storeModel ? $storeModel->state_id : null;
+        })->filter(function ($group, $key) {
+            // Filtrar qualquer grupo onde a chave (state_id) seja nula
+            return $key !== null;
+        });
+
+        // Criar a estrutura de dados do estado
+        $statesWithTotals = $storesGroupedByState->map(function ($stateStores, $stateId) {
+            // Encontrar o estado baseado no ID
+            $state = State::find($stateId);
+
+            if ($state) {
+                return [
+                    'state_id' => $stateId,
+                    'state_name' => $state->name,
+                    'total_amount' => $stateStores->sum('total_amount'),
+                    'children' => $stateStores->map(function ($store) {
+                        return [
+                            'store_id' => $store['store_id'],
+                            'store_name' => $store['store_name'],
+                            'total_amount' => $store['total_amount'],
+                        ];
+                    })->toArray(),
+                ];
+            }
+            return null;
+        })->filter();
+
+        return $statesWithTotals;
+    }
+
+    //Ao adicionar o símbolo & antes do nome do parâmetro (&$data), estamos indicando que a função receberá uma referência ao array original, e não uma cópia. Qualquer alteração feita dentro da função será refletida diretamente no array original.
+    private function calculateDimensions(&$data, $totalValue, $parentWidth, $parentHeight)
+    {
+        if (!is_array($data) && !$data instanceof \Traversable) {
+            return [];
+        }
+
+        foreach ($data as &$item) {
+            $proportion = $item['total_amount'] / $totalValue;
+            $item['width'] = $parentWidth * $proportion;
+            $item['height'] = $parentHeight * $proportion;
+
+            if (isset($item['children']) && (is_array($item['children']) || $item['children'] instanceof \Traversable)) {
+                $item['children'] = $this->calculateDimensions($item['children'], $item['total_amount'], $item['width'], $item['height']);
+            }
+        }
+
+        return $data;
+    }
+
+
+
+
+
+    private function assignPositions(&$data)
+    {
+        $offsetX = 0;
+        $offsetY = 0;
+
+        foreach ($data as &$item) {
+            // Verificar a presença dos valores width e height
+            if (!isset($item['width']) || !isset($item['height'])) {
+                // Se width ou height não estiver presente, continue ou defina um valor padrão
+                continue; // ou defina um valor padrão
+            }
+
+            $item['x'] = $offsetX;
+            $item['y'] = $offsetY;
+
+            if (isset($item['children']) && (is_array($item['children']) || $item['children'] instanceof \Traversable)) {
+                $offsetChildY = $offsetY;
+
+                foreach ($item['children'] as &$child) {
+                    // Verificar a presença dos valores width e height
+                    if (!isset($child['width']) || !isset($child['height'])) {
+                        // Se width ou height não estiver presente, continue ou defina um valor padrão
+                        continue; // ou defina um valor padrão
+                    }
+
+                    $child['x'] = $offsetX;
+                    $child['y'] = $offsetChildY;
+                    $offsetChildY += $child['height'];
+                }
+            }
+
+            $offsetX += $item['width'];
+        }
+
+        return $data;
+    }
+
+
     /**
      * Retorna o nome da localidade com base no tipo e identificador.
      *

@@ -1,8 +1,8 @@
 <template>
     <div :style="childStyle" class="tree-map-child">
       <div class="label">
-        <span>{{ labelName }}</span>
-        <span>{{ labelValue }}</span>
+        <span class="mr-2">{{ labelName }}</span>
+        <span class="ml-2">{{ labelValue }}</span>
       </div>
     </div>
   </template>
