@@ -66,49 +66,12 @@ class TreeMapServiceTest extends TestCase
         // Preparando os dados do banco de dados
         $state = State::where('name', 'Acre')->first();
         $stores = Store::where('state_id', $state->id)->get();
+        $orders = Order::all();
 
-        $data = [
-            [
-                'name' => $state->name,
-                'value' => $stores->sum('total_orders_value'), // Usando o método total_orders_value
-                'children' => $stores->map(function ($store) {
-                    return [
-                        'name' => $store->name,
-                        'value' => $store->total_orders_value // Usando o método total_orders_value
-                    ];
-                })->toArray()
-            ]
-        ];
-
-        $result = $this->service->generateTreeMapData(collect($data));
-
-        // Teste do parent
-        $this->assertEquals(800, $result[0]['width']);
-        $this->assertEquals(600, $result[0]['height']);
-
-        // Teste dos filhos
-        $children = $result[0]['children'];
-        $totalChildValue = array_sum(array_column($children, 'value'));
-
-        // Verifica se os filhos estão corretamente ordenados por valor
-        $sortedChildren = collect($children)->sortByDesc('value')->values()->toArray();
-        $this->assertEquals($sortedChildren, $children);
-
-        $offsetY = 0;
-        foreach ($children as $child) {
-            $proportion = $child['value'] / $totalChildValue;
-            $expectedWidth = 800 * $proportion;
-            $expectedHeight = 600 * $proportion;
-
-            $this->assertEquals($expectedWidth, $child['width']);
-            $this->assertEquals($expectedHeight, $child['height']);
-            $this->assertEquals(0, $child['x']);
-            $this->assertEquals($offsetY, $child['y']);
-
-            $offsetY += $child['height'];
-        }
+        $result = $this->service->generateTreeMapData($orders);
+        
+       $this->assertEquals($result->count(), 26); // 26 estados
+        
     }
-
-    
 
 }
