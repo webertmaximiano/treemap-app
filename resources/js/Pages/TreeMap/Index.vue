@@ -83,12 +83,12 @@ const handleStateChange = (event) => {
 <template>
     <div class="relative w-full max-w-2xl px-6 lg:max-w-7xl">
         <div>
-            <select @change="handleStateChange" class="p-2 border rounded flex">
-            <option value="">Selecione um estado</option>
-            <option v-for="stateId in states" :key="stateId" :value="stateId">
-                {{ props.treeMap[stateId].state_name }}
-            </option>
-        </select>
+            <select @change="handleStateChange" class="p-2 border rounded min-w-[200px]">
+                <option value="">Selecione um estado</option>
+                <option v-for="stateId in states" :key="stateId" :value="stateId">
+                    {{ props.treeMap[stateId].state_name }}
+                </option>
+            </select>
         </div>
         
         <div class="relative">
